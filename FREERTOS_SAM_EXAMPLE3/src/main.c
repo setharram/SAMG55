@@ -132,8 +132,9 @@ extern void vApplicationStackOverflowHook(TaskHandle_t *pxTask,
 /**
  * \brief This function is called by FreeRTOS idle task
  */
-extern void vApplicationIdleHook(void)
-{
+extern void vApplicationIdleHook(void)	{
+	
+	pmc_sleep(SAM_PM_SMODE_SLEEP_WFI);
 }
 
 /**
@@ -141,6 +142,7 @@ extern void vApplicationIdleHook(void)
  */
 extern void vApplicationTickHook(void)
 {
+	
 }
 
 extern void vApplicationMallocFailedHook(void)
@@ -178,12 +180,9 @@ static void task_monitor(void *pvParameters)
 static void task_led(void *pvParameters)
 {
 	UNUSED(pvParameters);
-	for (;;) {
-	#if SAM4CM
-		LED_Toggle(LED4);
-	#else
+	for (;;)	{
+		
 		LED_Toggle(LED0);
-	#endif
 		vTaskDelay(1000);
 	}
 }
