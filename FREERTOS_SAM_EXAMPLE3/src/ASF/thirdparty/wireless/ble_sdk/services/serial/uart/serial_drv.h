@@ -1,7 +1,7 @@
 /**
- * \file
+ * \file serial_drv.h
  *
- * \brief USART Serial Configuration
+ * \brief Handles Serial driver functionalities
  *
  * Copyright (c) 2016 Atmel Corporation. All rights reserved.
  *
@@ -38,24 +38,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * \asf_license_stop
+ */
+
+#ifndef SERIAL_DRV_H
+#define SERIAL_DRV_H
+
+/**
+ * This module performs serial input/output functionalities via UART
+ * @{
+ */
+
+/* === INCLUDES ============================================================ */
+
+#include "compiler.h"
+#include "status_codes.h"
+
+/* === PROTOTYPES ============================================================
+**/
+
+/**
+ * \brief Initializes the Serial IO Module
+ * \return STATUS_OK for successful initialization and FAILURE incase the IO is
+ * not initialized
+ */
+uint8_t configure_serial_drv(void);
+
+/**
+ * \brief Transmits data via UART
+ * \param data Pointer to the buffer where the data to be transmitted is present
+ * \param length Number of bytes to be transmitted
  *
+ * \return Number of bytes actually transmitted
  */
-/*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
+uint16_t serial_drv_send(uint8_t* data, uint16_t len);
+
+/**
+ * \brief Receives data from UART
+ *
+ * \param data pointer to the buffer where the received data is to be stored
+ * \param max_length maximum length of data to be received
+ *
+ * \return actual number of bytes received
  */
+uint8_t serial_read_data(uint8_t* data, uint16_t max_len);
 
-#ifndef CONF_USART_SERIAL_H_INCLUDED
-#define CONF_USART_SERIAL_H_INCLUDED
+uint8_t serial_read_byte(uint16_t* data);
+void configure_usart_after_patch(void);
+uint32_t platform_serial_drv_tx_status(void);
 
-/** UART Interface */
-#define CONF_UART            CONSOLE_UART
-/** Baudrate setting */
-#define CONF_UART_BAUDRATE   (115200UL)
-/** Character length setting */
-#define CONF_UART_CHAR_LENGTH  US_MR_CHRL_8_BIT
-/** Parity setting */
-#define CONF_UART_PARITY     US_MR_PAR_NO
-/** Stop bits setting */
-#define CONF_UART_STOP_BITS    US_MR_NBSTOP_1_BIT
+void platform_leave_critical_section(void);
+void platform_enter_critical_section(void);
 
-#endif/* CONF_USART_SERIAL_H_INCLUDED */
+void platfrom_start_rx(void);
+#endif /* SIO2HOST_H */

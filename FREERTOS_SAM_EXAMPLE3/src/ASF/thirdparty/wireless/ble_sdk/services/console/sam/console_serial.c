@@ -1,7 +1,7 @@
 /**
- * \file
+ * \file console_serial.c
  *
- * \brief USART Serial Configuration
+ * \brief Serial Console functionalities
  *
  * Copyright (c) 2016 Atmel Corporation. All rights reserved.
  *
@@ -38,24 +38,72 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * \asf_license_stop
- *
- */
-/*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#ifndef CONF_USART_SERIAL_H_INCLUDED
-#define CONF_USART_SERIAL_H_INCLUDED
+/* === INCLUDES ============================================================ */
 
-/** UART Interface */
+#include "asf.h"
+#include "console_serial.h"
+#include "conf_uart_serial.h"
+#include "usart.h"
+#include "platform.h"
+#include "timer_hw.h"
+
+/* === TYPES =============================================================== */
+
+/* === MACROS ============================================================== */
+
+#ifndef CONF_UART
 #define CONF_UART            CONSOLE_UART
-/** Baudrate setting */
-#define CONF_UART_BAUDRATE   (115200UL)
-/** Character length setting */
-#define CONF_UART_CHAR_LENGTH  US_MR_CHRL_8_BIT
-/** Parity setting */
-#define CONF_UART_PARITY     US_MR_PAR_NO
-/** Stop bits setting */
-#define CONF_UART_STOP_BITS    US_MR_NBSTOP_1_BIT
+#endif
 
-#endif/* CONF_USART_SERIAL_H_INCLUDED */
+#ifndef CONF_UART_BAUDRATE
+#define CONF_UART_BAUDRATE (115200UL)
+#endif
+
+#ifndef CONF_UART_CHAR_LENGTH
+#define CONF_UART_CHAR_LENGTH	US_MR_CHRL_8_BIT
+#endif
+
+#ifndef CONF_UART_PARITY
+#define CONF_UART_PARITY		US_MR_PAR_NO
+#endif
+
+#ifndef CONF_UART_STOP_BITS
+#define CONF_UART_STOP_BITS		US_MR_NBSTOP_1_BIT
+#endif
+
+/**
+ *  Configure console.
+ */
+void serial_console_init(void)
+{
+	const usart_serial_options_t uart_serial_options = {
+			.baudrate = CONF_UART_BAUDRATE,
+	#ifdef CONF_UART_CHAR_LENGTH
+			.charlength = CONF_UART_CHAR_LENGTH,
+	#endif
+			.paritytype = CONF_UART_PARITY,
+	#ifdef CONF_UART_STOP_BITS
+			.stopbits = CONF_UART_STOP_BITS,
+	#endif
+		};
+
+	/* Configure console UART. */
+	sysclk_enable_peripheral_clock(CONSOLE_UART_ID);
+	stdio_serial_init(CONF_UART, &uart_serial_options);
+}
+
+uint8_t getchar_timeout(uint32_t timeout)
+{
+	uint32_t temp = NULL;
+	
+	while((STATUS_OK != usart_read((Usart *)CONF_UART, &temp)) && timeout){
+		timeout--;
+		delay_ms(1);
+	}
+
+	return ((uint8_t)(temp & 0xFF));
+}
+
+/* EOF */

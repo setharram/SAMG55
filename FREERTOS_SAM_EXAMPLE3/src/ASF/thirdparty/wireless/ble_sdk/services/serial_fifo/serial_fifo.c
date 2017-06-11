@@ -1,7 +1,7 @@
 /**
  * \file
  *
- * \brief USART Serial Configuration
+ * \brief This file controls the software Serial FIFO management.
  *
  * Copyright (c) 2016 Atmel Corporation. All rights reserved.
  *
@@ -44,18 +44,32 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#ifndef CONF_USART_SERIAL_H_INCLUDED
-#define CONF_USART_SERIAL_H_INCLUDED
+#include "serial_fifo.h"
 
-/** UART Interface */
-#define CONF_UART            CONSOLE_UART
-/** Baudrate setting */
-#define CONF_UART_BAUDRATE   (115200UL)
-/** Character length setting */
-#define CONF_UART_CHAR_LENGTH  US_MR_CHRL_8_BIT
-/** Parity setting */
-#define CONF_UART_PARITY     US_MR_PAR_NO
-/** Stop bits setting */
-#define CONF_UART_STOP_BITS    US_MR_NBSTOP_1_BIT
+int ser_fifo_init(ser_fifo_desc_t *fifo_desc, void *buffer, uint16_t size)
+{
+	// Check the size parameter. It must be not null...
+	Assert (size);
 
-#endif/* CONF_USART_SERIAL_H_INCLUDED */
+	// ... must be a 2-power ...
+	Assert (!(size & (size - 1)));
+
+	// ... and must fit in a uint16_t. Since the read and write indexes are using a
+	// double-index range implementation, the max FIFO size is thus 32768 items.
+	Assert (size <= 32768);
+
+	// Serial Fifo starts empty.
+	fifo_desc->read_index  = 0;
+	fifo_desc->write_index = 0;
+
+	// Save the size parameter.
+	fifo_desc->size = size;
+
+	// Create a mask to speed up the FIFO management (index swapping).
+	fifo_desc->mask = (2 * (uint16_t)size) - 1;
+
+	// Save the buffer pointer.
+	fifo_desc->buffer.u8ptr = buffer;
+
+	return SER_FIFO_OK;
+}

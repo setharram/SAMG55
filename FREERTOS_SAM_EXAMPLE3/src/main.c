@@ -93,27 +93,23 @@
 #include "conf_board.h"
 #include "FreeRTOSConfig.h"
 
-#define TASK_MONITOR_STACK_SIZE            (2048/sizeof(portSTACK_TYPE))
-#define TASK_MONITOR_STACK_PRIORITY        (tskIDLE_PRIORITY)
-#define TASK_LED_STACK_SIZE                (1024/sizeof(portSTACK_TYPE))
-#define TASK_LED_STACK_PRIORITY            (tskIDLE_PRIORITY)
+#include "ble_manager.h"
+#include "hr_sensor.h"
+
+#define TASK_MONITOR_STACK_SIZE				(2048/sizeof(portSTACK_TYPE))
+#define TASK_MONITOR_STACK_PRIORITY			(tskIDLE_PRIORITY)
+#define TASK_LED_STACK_SIZE					(1024/sizeof(portSTACK_TYPE))
+#define TASK_LED_STACK_PRIORITY				(tskIDLE_PRIORITY)
+#define TASK_HR_STACK_SIZE					(8096/sizeof(portSTACK_TYPE))
+#define TASK_HR_STACK_PRIORITY				(1)
 
 extern void vApplicationStackOverflowHook(TaskHandle_t *pxTask,
 		signed char *pcTaskName);
 extern void vApplicationIdleHook(void);
 extern void vApplicationTickHook(void);
 extern void vApplicationMallocFailedHook(void);
-/*extern void xPortSysTickHandler(void)*/;
 
-// #if !(SAMV71 || SAME70)
-// /**
-//  * \brief Handler for System Tick interrupt.
-//  */
-// void SysTick_Handler(void)
-// {
-// 	xPortSysTickHandler();
-// }
-// #endif
+
 
 /**
  * \brief Called if stack overflow during execution
@@ -188,6 +184,28 @@ static void task_led(void *pvParameters)
 }
 
 /**
+ * \brief This task, when activated, make LED blink at a fixed rate
+ */
+static void task_heart_rate(void *pvParameters)
+{
+	UNUSED(pvParameters);
+	
+	/* initialize the ble chip  and Set the device mac address */
+	ble_device_init(NULL);
+	
+	/* Initialize the profile */
+	hr_sensor_init(NULL);
+	
+	hr_sensor_adv();
+	
+	for (;;)	{
+		
+		LED_Toggle(LED0);
+		vTaskDelay(250);
+	}
+}
+
+/**
  * \brief Configure the console UART.
  */
 static void configure_console(void)
@@ -235,17 +253,22 @@ int main(void)
 	printf("-- %s\n\r", BOARD_NAME);
 	printf("-- Compiled: %s %s --\n\r", __DATE__, __TIME__);
 
-
 	/* Create task to monitor processor activity */
-	if (xTaskCreate(task_monitor, "Monitor", TASK_MONITOR_STACK_SIZE, NULL,
-			TASK_MONITOR_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Failed to create Monitor task\r\n");
-	}
+// 	if (xTaskCreate(task_monitor, "Monitor", TASK_MONITOR_STACK_SIZE, NULL,
+// 			TASK_MONITOR_STACK_PRIORITY, NULL) != pdPASS) {
+// 		printf("Failed to create Monitor task\r\n");
+// 	}
 
 	/* Create task to make led blink */
 	if (xTaskCreate(task_led, "Led", TASK_LED_STACK_SIZE, NULL,
 			TASK_LED_STACK_PRIORITY, NULL) != pdPASS) {
 		printf("Failed to create test led task\r\n");
+	}
+	
+	/* Create task to run BLE Heart Rate Profile */
+	if (xTaskCreate(task_heart_rate, "HeartRate", TASK_HR_STACK_SIZE, NULL,
+			TASK_HR_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create heart rate task\r\n");
 	}
 
 	/* Start the scheduler. */

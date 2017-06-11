@@ -1,9 +1,9 @@
 /**
  * \file
  *
- * \brief USART Serial Configuration
+ * \brief Parallel Input/Output (PIO) interrupt handler for SAM.
  *
- * Copyright (c) 2016 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2011-2015 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -44,18 +44,26 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#ifndef CONF_USART_SERIAL_H_INCLUDED
-#define CONF_USART_SERIAL_H_INCLUDED
+#ifndef PIO_HANDLER_H_INCLUDED
+#define PIO_HANDLER_H_INCLUDED
 
-/** UART Interface */
-#define CONF_UART            CONSOLE_UART
-/** Baudrate setting */
-#define CONF_UART_BAUDRATE   (115200UL)
-/** Character length setting */
-#define CONF_UART_CHAR_LENGTH  US_MR_CHRL_8_BIT
-/** Parity setting */
-#define CONF_UART_PARITY     US_MR_PAR_NO
-/** Stop bits setting */
-#define CONF_UART_STOP_BITS    US_MR_NBSTOP_1_BIT
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif/* CONF_USART_SERIAL_H_INCLUDED */
+void pio_handler_process(Pio *p_pio, uint32_t ul_id);
+void pio_handler_set_priority(Pio *p_pio, IRQn_Type ul_irqn, uint32_t ul_priority);
+uint32_t pio_handler_set(Pio *p_pio, uint32_t ul_id, uint32_t ul_mask,
+		uint32_t ul_attr, void (*p_handler) (uint32_t, uint32_t));
+uint32_t pio_handler_set_pin(uint32_t ul_pin, uint32_t ul_flag,
+		void (*p_handler) (uint32_t, uint32_t));
+
+#if (SAM3S || SAM4S || SAM4E)
+void pio_capture_handler_set(void (*p_handler)(Pio *));
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* PIO_HANDLER_H_INCLUDED */

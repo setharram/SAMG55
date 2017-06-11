@@ -1,7 +1,7 @@
 /**
  * \file
  *
- * \brief USART Serial Configuration
+ * \brief BLE Profile related declarations
  *
  * Copyright (c) 2016 Atmel Corporation. All rights reserved.
  *
@@ -44,18 +44,36 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#ifndef CONF_USART_SERIAL_H_INCLUDED
-#define CONF_USART_SERIAL_H_INCLUDED
+#ifndef __PROFILES_H__
+#define __PROFILES_H__
 
-/** UART Interface */
-#define CONF_UART            CONSOLE_UART
-/** Baudrate setting */
-#define CONF_UART_BAUDRATE   (115200UL)
-/** Character length setting */
-#define CONF_UART_CHAR_LENGTH  US_MR_CHRL_8_BIT
-/** Parity setting */
-#define CONF_UART_PARITY     US_MR_PAR_NO
-/** Stop bits setting */
-#define CONF_UART_STOP_BITS    US_MR_NBSTOP_1_BIT
+/// Message structure used to inform APP that an error has occurred in the profile server role task
+typedef struct prf_server_error_ind
+{
+    /// Connection Handle
+	uint16_t conhdl;
+    /// Message ID
+	uint16_t msg_id;
+    /// Status
+	uint8_t status;
+}prf_server_error_ind_t;
 
-#endif/* CONF_USART_SERIAL_H_INCLUDED */
+/// Time profile information
+typedef struct prf_date_time
+{
+    /// year time element
+    uint16_t year;
+    /// month time element
+    uint8_t month;
+    /// day time element
+    uint8_t day;
+    /// hour time element
+    uint8_t hour;
+    /// minute time element
+    uint8_t min;
+    /// second time element
+    uint8_t sec;
+}prf_date_time_t;
+
+
+#endif /* __PROFILES_H__ */

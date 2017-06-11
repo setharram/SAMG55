@@ -1,7 +1,7 @@
 /**
  * \file
  *
- * \brief USART Serial Configuration
+ * \brief Platform Abstraction layer for BLE applications
  *
  * Copyright (c) 2016 Atmel Corporation. All rights reserved.
  *
@@ -44,18 +44,50 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#ifndef CONF_USART_SERIAL_H_INCLUDED
-#define CONF_USART_SERIAL_H_INCLUDED
+#ifndef __PLATFORM_H__
+#define __PLATFORM_H__
 
-/** UART Interface */
-#define CONF_UART            CONSOLE_UART
-/** Baudrate setting */
-#define CONF_UART_BAUDRATE   (115200UL)
-/** Character length setting */
-#define CONF_UART_CHAR_LENGTH  US_MR_CHRL_8_BIT
-/** Parity setting */
-#define CONF_UART_PARITY     US_MR_PAR_NO
-/** Stop bits setting */
-#define CONF_UART_STOP_BITS    US_MR_NBSTOP_1_BIT
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include "at_ble_api.h"
 
-#endif/* CONF_USART_SERIAL_H_INCLUDED */
+ /**@ingroup platform_group_functions
+  * @brief implements platform-specific initialization
+  *
+  * @param[in] bus_type bus type can be UART or SPI
+  * @param[in] bus_flow_control_enabled bus type can have flow control Enable/Disable option
+  *
+  * @return Upon successful completion the function shall return @ref AT_BLE_SUCCESS, Otherwise the function shall return @ref at_ble_status_t 
+  */
+at_ble_status_t platform_init(uint8_t bus_type, uint8_t bus_flow_control_enabled);
+
+ /**@ingroup platform_group_functions
+  * @brief sends a message over the platform-specific bus and blocks until Tx Completes
+  *
+  * Sends a message over the platform-specific bus that might be UART, SPI
+  *
+  * @param[in] data data to send over the interface
+  * @param[in] len length of data
+  *
+  */
+void platform_send_sync(uint8_t *data, uint32_t len);
+
+void platform_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status);
+
+void platform_recv_async(void (*recv_async_callback)(uint8_t));
+
+void platform_sleep(uint32_t ms);
+bool platform_wakeup_pin_status(void);
+void plaform_ble_rx_callback(void);
+
+void *platform_create_timer(void (*timer_cb)(void *));
+void platform_delete_timer(void *timer_handle);
+void platform_stop_timer(void *timer_handle);
+void platform_start_timer(void *timer_handle, uint32_t ms);
+void platform_configure_hw_fc_uart(void);
+void platform_process_rxdata(uint8_t t_rx_data);
+void platform_dma_process_rxdata(uint8_t *buf, uint16_t len);
+
+#endif // __PLATFORM_H__
